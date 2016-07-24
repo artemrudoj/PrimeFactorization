@@ -43,7 +43,7 @@ public class EnterNumberFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 if(isNumberValid()) {
-                    FactoriztaionContainerActivity.go(getActivity(), null);
+                    FactoriztaionContainerActivity.go(getActivity(), mNumberEditText.getText().toString());
                 }
             }
         });

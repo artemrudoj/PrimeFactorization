@@ -9,12 +9,16 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.mipt.artem.primefactorization.R;
+
+import java.lang.ref.WeakReference;
+import java.util.List;
 
 
 /**
@@ -28,6 +32,7 @@ public class FactorizeNumberFragment extends Fragment {
     private String mNumber;
     private int mCurrentProgress;
     private TextView mPercentTextView;
+    private final String TAG = "FactorizeNumberFragment";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -108,10 +113,13 @@ public class FactorizeNumberFragment extends Fragment {
         if(currentActivity != null) {
             if (mIsBound) {
                 try {
+                    if(mBoundLocalService != null) {
+                        mBoundLocalService.setServiceListener(null);
+                    }
                     currentActivity.unbindService(mLocalServiceConnection);
                     mIsBound = false;
                 } catch (IllegalArgumentException e) {
-
+                    e.printStackTrace();
                 }
             }
         }
@@ -129,6 +137,7 @@ public class FactorizeNumberFragment extends Fragment {
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             mBoundLocalService = ((PrimeFactorService.ServiceBinder)iBinder)
                     .getService();
+            mBoundLocalService.setServiceListener(new ServiceListener(FactorizeNumberFragment.this));
             updatePercentCount();
             updateUI();
         }
@@ -140,6 +149,47 @@ public class FactorizeNumberFragment extends Fragment {
 
 
     public FactorizeNumberFragment() {
+    }
+
+
+    public static class ServiceListener implements ProgressChangerListener {
+        private WeakReference<FactorizeNumberFragment> mWeakActivity;
+        public ServiceListener(FactorizeNumberFragment fragment) {
+            this.mWeakActivity = new WeakReference<>(fragment);
+        }
+        @Override
+        public void setProgress(int progress) {
+            final FactorizeNumberFragment localReferenceActivity = mWeakActivity.get();
+            if (localReferenceActivity != null) {
+                Activity activity = localReferenceActivity.getActivity();
+                if(activity != null) {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            localReferenceActivity.updatePercentCount();
+                            localReferenceActivity.updateUI();
+                        }
+                    });
+                }
+            }
+        }
+
+        @Override
+        public void setResult(final List result) {
+            final FactorizeNumberFragment localReferenceActivity = mWeakActivity.get();
+            if (localReferenceActivity != null) {
+                Activity activity = localReferenceActivity.getActivity();
+                if(activity != null) {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            localReferenceActivity.mPercentTextView.setText(result.toString());
+                        }
+                    });
+                }
+            }
+        }
+
     }
 
 
