@@ -16,6 +16,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".factorization.FactoriztaionContainerActivity"></activity>
+        <service android:name=".factorization.PrimeFactorService"/>
     </application>
 
 </manifest>
