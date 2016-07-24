@@ -11,6 +11,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.mipt.artem.primefactorization.Utils;
+import com.mipt.artem.primefactorization.base.PrimeFactorizationApp;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -73,7 +74,7 @@ public class PrimeFactorService extends Service implements ProgressChangeListene
         if(intent == null) {
             throw new IllegalArgumentException("intent must not be null");
         }
-        String number = intent.getStringExtra(FactoriztaionContainerActivity.EXTRA_NUMBER);
+        final String number = intent.getStringExtra(FactoriztaionContainerActivity.EXTRA_NUMBER);
         if(number == null) {
             throw new IllegalArgumentException("number can not be null");
         }
@@ -87,6 +88,7 @@ public class PrimeFactorService extends Service implements ProgressChangeListene
                 if(mProgressChangerListener != null) {
                     mProgressChangerListener.setResult(result);
                 }
+                PrimeFactorizationApp.getCache(PrimeFactorService.this).save(number, result);
                 PrimeFactorService.this.stopSelf();
             }
         }).start();
