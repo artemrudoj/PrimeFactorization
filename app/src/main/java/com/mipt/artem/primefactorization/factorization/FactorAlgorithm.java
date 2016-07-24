@@ -33,6 +33,9 @@ public class FactorAlgorithm {
         if (n.compareTo(BigInteger.ONE) > 0) {
             BigInteger f = BigInteger.valueOf(3);
             while (f.multiply(f).compareTo(n) <= 0) {
+                if(progressChangerListener.isCanceled()) {
+                    return null;
+                }
                 if (n.mod(f).equals(BigInteger.ZERO))
                 {
                     fs.add(f);

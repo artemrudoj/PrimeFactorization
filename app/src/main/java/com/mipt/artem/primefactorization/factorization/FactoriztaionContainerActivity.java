@@ -15,7 +15,7 @@ public class FactoriztaionContainerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.non_toolbar_activity);
         if(savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
+            getFragmentManager().beginTransaction()
                     .add(R.id.container_fl, FactorizeNumberFragment.newInstance(getNumber())).commit();
         }
     }

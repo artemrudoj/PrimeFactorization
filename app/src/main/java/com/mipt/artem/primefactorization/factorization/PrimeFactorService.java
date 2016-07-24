@@ -25,6 +25,8 @@ public class PrimeFactorService extends Service implements ProgressChangeListene
     private int mCurrentProgress;
     private final ServiceBinder mBinder = new ServiceBinder();
     private ProgressChangerListener mProgressChangerListener;
+    private List mResult;
+    private boolean isCanceled;
 
 
     public int getCurrentProgress() {
@@ -37,6 +39,11 @@ public class PrimeFactorService extends Service implements ProgressChangeListene
         if(mProgressChangerListener != null) {
             mProgressChangerListener.setProgress(progress);
         }
+    }
+
+    @Override
+    public boolean isCanceled() {
+        return isCanceled;
     }
 
 
@@ -53,6 +60,11 @@ public class PrimeFactorService extends Service implements ProgressChangeListene
     public void setServiceListener(FactorizeNumberFragment.ServiceListener serviceListener) {
         this.mProgressChangerListener = serviceListener;
     }
+
+    public void setCanceled(boolean canceled) {
+        this.isCanceled = canceled;
+    }
+
 
     public class ServiceBinder extends Binder {
         public PrimeFactorService getService() {
@@ -83,15 +95,24 @@ public class PrimeFactorService extends Service implements ProgressChangeListene
             @Override
             public void run() {
                 Log.d(TAG, "run: start factor");
-                List result = FactorAlgorithm.start(factorizedNumber, PrimeFactorService.this);
-                Log.d(TAG, "run: finish result is " + result);
-                if(mProgressChangerListener != null) {
-                    mProgressChangerListener.setResult(result);
+                mResult = FactorAlgorithm.start(factorizedNumber, PrimeFactorService.this);
+                if(mResult != null) {
+                    PrimeFactorizationApp.getCache(PrimeFactorService.this).save(number, mResult);
+                    Log.d(TAG, "run: finish result is " + mResult);
+                    if (mProgressChangerListener != null) {
+                        mProgressChangerListener.setResult(mResult);
+                    }
                 }
-                PrimeFactorizationApp.getCache(PrimeFactorService.this).save(number, result);
                 PrimeFactorService.this.stopSelf();
             }
         }).start();
-        return START_REDELIVER_INTENT;
+        return START_NOT_STICKY;
+    }
+
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy: " );
     }
 }

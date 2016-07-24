@@ -2,20 +2,25 @@ package com.mipt.artem.primefactorization.factorization;
 
 
 import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.app.Service;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.v4.app.Fragment;
+
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.mipt.artem.primefactorization.R;
+import com.mipt.artem.primefactorization.base.PrimeFactorizationApp;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
@@ -25,6 +30,7 @@ import java.util.List;
  * A simple {@link Fragment} subclass.
  */
 public class FactorizeNumberFragment extends Fragment {
+    private final int CANCEL_ACTION = 123;
     private LocalServiceConnection mLocalServiceConnection =
             new LocalServiceConnection();
     private PrimeFactorService mBoundLocalService;
@@ -32,6 +38,8 @@ public class FactorizeNumberFragment extends Fragment {
     private String mNumber;
     private int mCurrentProgress;
     private TextView mPercentTextView;
+    private List mResult;
+    private Button mStopButton;
     private final String TAG = "FactorizeNumberFragment";
 
     @Override
@@ -42,10 +50,15 @@ public class FactorizeNumberFragment extends Fragment {
         mCurrentProgress = -1;
         Activity currentActivity = getActivity();
         if (currentActivity != null) {
-            if (!PrimeFactorService.isRunning(currentActivity)) {
-                PrimeFactorService.start(currentActivity, mNumber);
+            mResult = PrimeFactorizationApp.getCache(currentActivity).getDividers(mNumber);
+            if (isNeedToStartService(currentActivity)) {
+                    PrimeFactorService.start(currentActivity, mNumber);
             }
         }
+    }
+
+    boolean isNeedToStartService(Context context) {
+        return (mResult == null) && (!PrimeFactorService.isRunning(context));
     }
 
     String getNumber() {
@@ -76,26 +89,46 @@ public class FactorizeNumberFragment extends Fragment {
 
     @Override
     public void onResume() {
+        Log.d(TAG, "onResume: ");
         super.onResume();
+        if (mResult == null) {
+            mResult = PrimeFactorizationApp.getCache(getActivity()).getDividers(mNumber);
+        }
         updatePercentCount();
         updateUI();
     }
 
     void updateUI() {
-        if(mCurrentProgress != -1) {
-            mPercentTextView.setText(Integer.toString(mCurrentProgress));
+        if(mResult != null) {
+            mPercentTextView.setText(mResult.toString());
+        } else {
+            if (mCurrentProgress != -1) {
+                mPercentTextView.setText(Integer.toString(mCurrentProgress));
+            }
         }
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause: ");
+    }
+    
+    
+
+    @Override
     public void onStart() {
         super.onStart();
-        bindToService();
+        Log.d(TAG, "onStart: ");
+        if(mResult == null) {
+            bindToService();
+        }
     }
 
     @Override
     public void onStop() {
         super.onStop();
+        Log.d(TAG, "onStop: ");
         unbindFromService();
     }
 
@@ -125,7 +158,6 @@ public class FactorizeNumberFragment extends Fragment {
         }
     }
 
-
     void updatePercentCount() {
         if(mBoundLocalService != null) {
             mCurrentProgress = mBoundLocalService.getCurrentProgress();
@@ -135,15 +167,18 @@ public class FactorizeNumberFragment extends Fragment {
     private class LocalServiceConnection implements ServiceConnection {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            Log.d(TAG, "onServiceConnected: ");
             mBoundLocalService = ((PrimeFactorService.ServiceBinder)iBinder)
                     .getService();
             mBoundLocalService.setServiceListener(new ServiceListener(FactorizeNumberFragment.this));
             updatePercentCount();
             updateUI();
         }
+
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
             mBoundLocalService = null;
+            Log.d(TAG, "onServiceDisconnected: ");
         }
     }
 
@@ -183,7 +218,9 @@ public class FactorizeNumberFragment extends Fragment {
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            localReferenceActivity.mResult = result;
                             localReferenceActivity.mPercentTextView.setText(result.toString());
+                            localReferenceActivity.unbindFromService();
                         }
                     });
                 }
@@ -193,9 +230,31 @@ public class FactorizeNumberFragment extends Fragment {
     }
 
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode != Activity.RESULT_OK) {
+            return;
+        }
+        if (requestCode == CANCEL_ACTION) {
+            if(mBoundLocalService != null) {
+                mBoundLocalService.setCanceled(true);
+            }
+            getActivity().finish();
+        }
+    }
 
     private void initView(View view) {
         mPercentTextView = (TextView)view.findViewById(R.id.percent_tv);
+        mStopButton = (Button) view.findViewById(R.id.stop_btn);
+        mStopButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FragmentManager manager = getActivity().getFragmentManager();
+                ApproveExitDialogFragment dialog = new ApproveExitDialogFragment();
+                dialog.setTargetFragment(FactorizeNumberFragment.this, CANCEL_ACTION);
+                dialog.show(manager, null);
+            }
+        });
     }
 
 }

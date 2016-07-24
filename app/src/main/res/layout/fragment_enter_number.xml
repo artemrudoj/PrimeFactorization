@@ -16,5 +16,5 @@
         android:layout_height="48dp"
         android:layout_alignParentBottom="true"
         android:background="?colorAccent"
-        android:text="Получить код"/>
+        android:text="Начать"/>
 </RelativeLayout>
