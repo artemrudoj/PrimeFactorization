@@ -3,7 +3,6 @@
     package="com.mipt.artem.primefactorization">
 
     <application
-        android:name=".base.PrimeFactorizationApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -16,7 +15,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".factorization.FactoriztaionContainerActivity"></activity>
+        <activity android:name=".factorization.FactoriztaionContainerActivity"/>
         <service android:name=".factorization.PrimeFactorService"/>
     </application>
 
