@@ -6,12 +6,14 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.mipt.artem.primefactorization.Utils;
-import com.mipt.artem.primefactorization.base.PrimeFactorizationApp;
+import com.mipt.artem.primefactorization.utils.Utils;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -19,37 +21,57 @@ import java.util.List;
 /**
  * Created by artem on 23.07.16.
  */
-public class PrimeFactorService extends Service implements ProgressChangeListener {
+public class PrimeFactorService extends Service {
     private static final String TAG = "PrimeFactorService";
 
-    private int mCurrentProgress;
+
     private final ServiceBinder mBinder = new ServiceBinder();
     private ProgressChangerListener mProgressChangerListener;
-    private List mResult;
-    private boolean isCanceled;
+    private PrimeFactorHandlerThread mPrimeFactorHandlerThread;
+
+
+
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return mBinder;
+    }
+
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        mPrimeFactorHandlerThread = new PrimeFactorHandlerThread();
+        mPrimeFactorHandlerThread.start();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d(TAG, "onStartCommand: ");
+        return START_NOT_STICKY;
+    }
+
+
+    void startFactor(String number){
+        mPrimeFactorHandlerThread.startFactor(number);
+    }
+
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mPrimeFactorHandlerThread.quit();
+        Log.d(TAG, "onDestroy: " );
+    }
 
 
     public int getCurrentProgress() {
-        return mCurrentProgress;
+        return mPrimeFactorHandlerThread.getCurrentProgress();
     }
 
-    @Override
-    public void setProgress(int progress) {
-        mCurrentProgress = progress;
-        if(mProgressChangerListener != null) {
-            mProgressChangerListener.setProgress(progress);
-        }
-    }
-
-    @Override
-    public boolean isCanceled() {
-        return isCanceled;
-    }
-
-
-    public static void start(Context context, String number) {
+    public static void start(Context context) {
         Intent intent = new Intent(context, PrimeFactorService.class);
-        intent.putExtra(FactoriztaionContainerActivity.EXTRA_NUMBER, number);
         context.startService(intent);
     }
 
@@ -62,7 +84,11 @@ public class PrimeFactorService extends Service implements ProgressChangeListene
     }
 
     public void setCanceled(boolean canceled) {
-        this.isCanceled = canceled;
+        mPrimeFactorHandlerThread.setCanceled(canceled);
+    }
+
+    public List getResult(String number) {
+        return mPrimeFactorHandlerThread.getResult(number);
     }
 
 
@@ -73,46 +99,108 @@ public class PrimeFactorService extends Service implements ProgressChangeListene
     }
 
 
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return mBinder;
-    }
 
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "onStartCommand: ");
-        if(intent == null) {
-            throw new IllegalArgumentException("intent must not be null");
+
+    private class PrimeFactorHandlerThread extends HandlerThread implements ProgressChangeListener{
+
+        private final int FACTOR = 1;
+
+        public PrimeFactorHandlerThread() {
+            super("PrimeFactorHandlerThread");
         }
-        final String number = intent.getStringExtra(FactoriztaionContainerActivity.EXTRA_NUMBER);
-        if(number == null) {
-            throw new IllegalArgumentException("number can not be null");
+
+        private Handler mHandler;
+        private List mLastResult;
+        private String mLastNumber;
+        private boolean isCanceled;
+        private boolean isTaskRun;
+        private int mCurrentProgress;
+
+
+        public void startFactor(String number) {
+            if(isTaskRun) {
+                // correct task already running
+                if(mLastNumber != null && mLastNumber.equals(number)){
+                    Log.d(TAG, "startFactor: task already running");
+                    return;
+                } else {
+                    // incorrect task running
+                    Log.d(TAG, "startFactor: incorrect task is running");
+                    isCanceled = true;
+                }
+            }
+            mHandler.sendMessage(Message.obtain(Message.obtain(mHandler,
+                    FACTOR, number)));
         }
-        final BigInteger factorizedNumber = new BigInteger(number);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Log.d(TAG, "run: start factor");
-                mResult = FactorAlgorithm.start(factorizedNumber, PrimeFactorService.this);
-                if(mResult != null) {
-                    PrimeFactorizationApp.getCache(PrimeFactorService.this).save(number, mResult);
-                    Log.d(TAG, "run: finish result is " + mResult);
-                    if (mProgressChangerListener != null) {
-                        mProgressChangerListener.setResult(mResult);
+
+        @Override
+        protected void onLooperPrepared() {
+            Log.d(TAG, "onLooperPrepared: ");
+            super.onLooperPrepared();
+            mHandler = new Handler(getLooper()) {
+                @Override
+                public void handleMessage(Message msg) {
+                    super.handleMessage(msg);
+                    switch (msg.what) {
+                        case FACTOR:
+                            isTaskRun = true;
+                            mLastResult = null;
+                            mCurrentProgress = 0;
+                            Log.d(TAG, "run: start factor");
+                            mLastNumber = (String)msg.obj;
+                            final BigInteger factorizedNumber = new BigInteger(mLastNumber);
+                            if(!isCanceled()) {
+                                mLastResult = FactorAlgorithm.start(factorizedNumber, PrimeFactorHandlerThread.this);
+                                if (mLastResult != null) {
+                                    Log.d(TAG, "run: finish result is " + mLastResult);
+                                    if (mProgressChangerListener != null) {
+                                        mProgressChangerListener.setResult(mLastResult);
+                                    }
+                                }
+                            }
+                            isCanceled = false;
+                            isTaskRun = false;
+                            break;
                     }
                 }
-                PrimeFactorService.this.stopSelf();
+            };
+        }
+
+        public List getResult(String number) {
+            if (!isTaskRun && number.equals(mLastNumber)) {
+                return mLastResult;
+            } else {
+                return null;
             }
-        }).start();
-        return START_NOT_STICKY;
-    }
+        }
+
+        public void setCanceled(boolean canceled) {
+            this.isCanceled = canceled;
+        }
 
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.d(TAG, "onDestroy: " );
+        @Override
+        public boolean isCanceled() {
+            return isCanceled;
+        }
+
+        @Override
+        public void setProgress(int progress) {
+            mCurrentProgress = progress;
+            if (mProgressChangerListener != null) {
+                mProgressChangerListener.setProgress(mCurrentProgress);
+            }
+        }
+
+        public int getCurrentProgress() {
+            //// TODO: 25.07.16 sync
+            if(isTaskRun) {
+                return mCurrentProgress;
+            } else {
+                return -1;
+            }
+        }
+
     }
 }
