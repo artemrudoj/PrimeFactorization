@@ -20,7 +20,6 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.mipt.artem.primefactorization.R;
-import com.mipt.artem.primefactorization.base.PrimeFactorizationApp;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
@@ -50,9 +49,8 @@ public class FactorizeNumberFragment extends Fragment {
         mCurrentProgress = -1;
         Activity currentActivity = getActivity();
         if (currentActivity != null) {
-            mResult = PrimeFactorizationApp.getCache(currentActivity).getDividers(mNumber);
             if (isNeedToStartService(currentActivity)) {
-                    PrimeFactorService.start(currentActivity, mNumber);
+                    PrimeFactorService.start(currentActivity);
             }
         }
     }
@@ -91,10 +89,7 @@ public class FactorizeNumberFragment extends Fragment {
     public void onResume() {
         Log.d(TAG, "onResume: ");
         super.onResume();
-        if (mResult == null) {
-            mResult = PrimeFactorizationApp.getCache(getActivity()).getDividers(mNumber);
-        }
-        updatePercentCount();
+        syncWithService();
         updateUI();
     }
 
@@ -120,7 +115,7 @@ public class FactorizeNumberFragment extends Fragment {
     public void onStart() {
         super.onStart();
         Log.d(TAG, "onStart: ");
-        if(mResult == null) {
+        if (mResult == null) {
             bindToService();
         }
     }
@@ -158,9 +153,17 @@ public class FactorizeNumberFragment extends Fragment {
         }
     }
 
-    void updatePercentCount() {
+    void syncWithService() {
+        if (mResult != null) {
+            return;
+        }
         if(mBoundLocalService != null) {
-            mCurrentProgress = mBoundLocalService.getCurrentProgress();
+            mResult = mBoundLocalService.getResult(mNumber);
+            if(mResult == null) {
+                mCurrentProgress = mBoundLocalService.getCurrentProgress();
+            } else {
+                unbindFromService();
+            }
         }
     }
 
@@ -171,8 +174,12 @@ public class FactorizeNumberFragment extends Fragment {
             mBoundLocalService = ((PrimeFactorService.ServiceBinder)iBinder)
                     .getService();
             mBoundLocalService.setServiceListener(new ServiceListener(FactorizeNumberFragment.this));
-            updatePercentCount();
-            updateUI();
+            syncWithService();
+            if (mResult == null) {
+                mBoundLocalService.startFactor(mNumber);
+            } else {
+                updateUI();
+            }
         }
 
         @Override
@@ -201,7 +208,7 @@ public class FactorizeNumberFragment extends Fragment {
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            localReferenceActivity.updatePercentCount();
+                            localReferenceActivity.syncWithService();
                             localReferenceActivity.updateUI();
                         }
                     });
