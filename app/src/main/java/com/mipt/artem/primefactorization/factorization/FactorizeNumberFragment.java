@@ -22,6 +22,7 @@ import android.widget.TextView;
 import com.mipt.artem.primefactorization.R;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -40,6 +41,8 @@ public class FactorizeNumberFragment extends Fragment {
     private List mResult;
     private Button mStopButton;
     private final String TAG = "FactorizeNumberFragment";
+    private final String EXTRA_RESULT = "FactorizeNumberFragment.EXTRA_RESULT";
+    private final String EXTRA_PROGRESS = "FactorizeNumberFragment.EXTRA_PROGRESS";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -47,11 +50,35 @@ public class FactorizeNumberFragment extends Fragment {
         mNumber = getNumber();
         //set default value
         mCurrentProgress = -1;
+        restoreData(savedInstanceState);
         Activity currentActivity = getActivity();
         if (currentActivity != null) {
             if (isNeedToStartService(currentActivity)) {
                     PrimeFactorService.start(currentActivity);
             }
+        }
+    }
+
+    private void restoreData(Bundle bundle) {
+        if (bundle == null) {
+            return;
+        }
+        mResult = bundle.getStringArrayList(EXTRA_RESULT);
+        mCurrentProgress = bundle.getInt(EXTRA_PROGRESS, -1);
+        Log.d(TAG, "restoreData: restored " + mResult);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(EXTRA_PROGRESS, mCurrentProgress);
+        if (mResult == null) {
+            return;
+        }
+        if (mResult instanceof ArrayList) {
+            outState.putStringArrayList(EXTRA_RESULT, (ArrayList<String>) mResult);
+        } else {
+            throw new IllegalArgumentException("mResult should be ArrayList");
         }
     }
 
@@ -102,14 +129,6 @@ public class FactorizeNumberFragment extends Fragment {
             }
         }
     }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        Log.d(TAG, "onPause: ");
-    }
-    
-    
 
     @Override
     public void onStart() {
