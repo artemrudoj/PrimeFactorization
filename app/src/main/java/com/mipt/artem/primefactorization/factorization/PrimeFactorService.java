@@ -116,12 +116,13 @@ public class PrimeFactorService extends Service {
         private boolean isCanceled;
         private boolean isTaskRun;
         private int mCurrentProgress;
+        private Message lastMessage;
 
 
         public void startFactor(String number) {
-            if(isTaskRun) {
+            if (isTaskRun) {
                 // correct task already running
-                if(mLastNumber != null && mLastNumber.equals(number)){
+                if (mLastNumber != null && mLastNumber.equals(number)){
                     Log.d(TAG, "startFactor: task already running");
                     return;
                 } else {
@@ -130,8 +131,14 @@ public class PrimeFactorService extends Service {
                     isCanceled = true;
                 }
             }
-            mHandler.sendMessage(Message.obtain(Message.obtain(mHandler,
-                    FACTOR, number)));
+            Message tempMessage = Message.obtain(Message.obtain(mHandler,
+                    FACTOR, number));
+            //for sync
+            if (mHandler == null) {
+                lastMessage = tempMessage;
+            } else {
+                mHandler.sendMessage(tempMessage);
+            }
         }
 
         @Override
@@ -149,9 +156,8 @@ public class PrimeFactorService extends Service {
                             mCurrentProgress = 0;
                             Log.d(TAG, "run: start factor");
                             mLastNumber = (String)msg.obj;
-                            final BigInteger factorizedNumber = new BigInteger(mLastNumber);
                             if(!isCanceled()) {
-                                mLastResult = FactorAlgorithm.start(factorizedNumber, PrimeFactorHandlerThread.this);
+                                mLastResult = FactorAlgorithm.start(mLastNumber, PrimeFactorHandlerThread.this);
                                 if (mLastResult != null) {
                                     Log.d(TAG, "run: finish result is " + mLastResult);
                                     if (mProgressChangerListener != null) {
@@ -165,6 +171,10 @@ public class PrimeFactorService extends Service {
                     }
                 }
             };
+            if (lastMessage != null) {
+                mHandler.sendMessage(lastMessage);
+                lastMessage = null;
+            }
         }
 
         public List getResult(String number) {

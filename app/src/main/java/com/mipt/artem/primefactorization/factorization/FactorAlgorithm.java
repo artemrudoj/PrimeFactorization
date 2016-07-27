@@ -2,9 +2,9 @@ package com.mipt.artem.primefactorization.factorization;
 
 import android.util.Log;
 
-import com.mipt.artem.primefactorization.utils.Utils;
+import com.mipt.artem.primefactorization.utils.numbers.NumberFactory;
+import com.mipt.artem.primefactorization.utils.numbers.SimpleMathOperation;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,36 +15,44 @@ import java.util.List;
 public class FactorAlgorithm {
     private static final String TAG = "FactorAlgorithm";
 
-    public  static List start(BigInteger n, ProgressChangeListener progressChangerListener) {
-        BigInteger two = BigInteger.valueOf(2);
+    public  static List start(String number, ProgressChangeListener progressChangerListener) {
+
+
+        NumberFactory numberFactory = NumberFactory.build(number);
+        SimpleMathOperation n = numberFactory.valueOf(number);
+
+        SimpleMathOperation two = numberFactory.valueOf(2);
 
         if (n.compareTo(two) < 0) {
             throw new IllegalArgumentException("must be greater than one");
         }
 
-        PercentCalculator percentCalculator = new PercentCalculator(n,progressChangerListener);
+        PercentCalculator percentCalculator = new PercentCalculator(n, progressChangerListener, numberFactory);
         ArrayList fs = new ArrayList<>();
 
 
-        while (n.mod(two).equals(BigInteger.ZERO)) {
+        SimpleMathOperation zero = numberFactory.valueOf(0);
+
+        while (numberFactory.mod(n, two).compareTo(zero) == 0) {
             fs.add(two);
+            Log.d(TAG, "start: 1" + n);
             n = n.divide(two);
+            Log.d(TAG, "start: 2" + n);
             percentCalculator.updateProgressAfterNewDiver(two,n);
         }
-        BigInteger temp = Utils.bigIntSqRootCeil(n);
+        SimpleMathOperation temp = numberFactory.sqrt(n);
 
-        if (n.compareTo(BigInteger.ONE) > 0) {
-            BigInteger f = BigInteger.valueOf(3);
+        if (n.compareTo(numberFactory.valueOf(1)) > 0) {
+            SimpleMathOperation f = numberFactory.valueOf(3);
             while (f.compareTo(temp) <= 0) {
                 if(progressChangerListener.isCanceled()) {
                     Log.d(TAG, "start: canceled");
                     return null;
                 }
-                if (n.mod(f).equals(BigInteger.ZERO))
-                {
-                    fs.add(f);
+                if (numberFactory.mod(n,f).compareTo(numberFactory.valueOf(0)) == 0) {
+                    fs.add(f.copy());
                     n = n.divide(f);
-                    temp  = Utils.bigIntSqRootCeil(n);
+                    temp  = numberFactory.sqrt(n);
                     percentCalculator.updateProgressAfterNewDiver(f,temp);
                 } else {
                     f = f.add(two);
@@ -60,35 +68,39 @@ public class FactorAlgorithm {
     private static class PercentCalculator {
         private static final int WHOLE_NUMBER_OF_PERCENTS = 100;
         private ProgressChangeListener mProgressChangerListener;
-        private BigInteger mNextStepProgressUpdateValue;
-        private BigInteger mStep;
+        private SimpleMathOperation mNextStepProgressUpdateValue;
+        private SimpleMathOperation mStep;
         private int mCurrentPercentUpdateValue;
+        private NumberFactory mNumberFactory;
 
-        public PercentCalculator(BigInteger n, ProgressChangeListener progressChangerListener) {
+        public PercentCalculator(SimpleMathOperation n, ProgressChangeListener progressChangerListener, NumberFactory numberFactory) {
+            mNumberFactory = numberFactory;
             mProgressChangerListener = progressChangerListener;
             mCurrentPercentUpdateValue = 0;
-            mNextStepProgressUpdateValue = BigInteger.valueOf(0);
-            mStep = calculateNextStep(Utils.bigIntSqRootCeil(n));
+            mNextStepProgressUpdateValue = mNumberFactory.valueOf(0);
+            mStep = calculateNextStep(mNumberFactory.sqrt(n));
         }
 
         // sqrt(x)/100 * ( 100 - mCurrentPercentUpdateValue)/100
-        private BigInteger calculateNextStep(BigInteger n) {
-            BigInteger nextStep = n
-                    .multiply(BigInteger.valueOf(WHOLE_NUMBER_OF_PERCENTS - mCurrentPercentUpdateValue))
-                    .divide(BigInteger.valueOf(WHOLE_NUMBER_OF_PERCENTS * WHOLE_NUMBER_OF_PERCENTS));
+        private SimpleMathOperation calculateNextStep(SimpleMathOperation n) {
+            SimpleMathOperation temp = n.copy();
+            SimpleMathOperation nextStep = temp
+                    .multiply(mNumberFactory.valueOf(WHOLE_NUMBER_OF_PERCENTS - mCurrentPercentUpdateValue))
+                    .divide(mNumberFactory.valueOf(WHOLE_NUMBER_OF_PERCENTS * WHOLE_NUMBER_OF_PERCENTS));
             Log.d(TAG, "calculateNextStep: " + nextStep);
             Log.d(TAG, "calculateNextStep: number" + n);
             return nextStep;
         }
 
-        public void updateProgressAfterNewDiver(BigInteger f, BigInteger n) {
+        public void updateProgressAfterNewDiver(SimpleMathOperation f, SimpleMathOperation n) {
             Log.d(TAG, "updateProgressAfterNewDiver: " + f);
             updateProgress(f);
             mStep = calculateNextStep(n);
-            mNextStepProgressUpdateValue = f.add(mStep);
+            SimpleMathOperation temp = f.copy();
+            mNextStepProgressUpdateValue = temp.add(mStep);
         }
 
-        public void updateProgress(BigInteger currentValue) {
+        public void updateProgress(SimpleMathOperation currentValue) {
 //            Log.d(TAG, "updateProgress: " + currentValue);
             if(currentValue.compareTo(mNextStepProgressUpdateValue) > 0) {
                 mCurrentPercentUpdateValue += 1;
@@ -100,13 +112,6 @@ public class FactorAlgorithm {
                 mNextStepProgressUpdateValue = mNextStepProgressUpdateValue.add(mStep);
             }
         }
-
-//        private int getPartInPercentFromNumber(BigInteger partNumber, BigInteger wholeNumber) {
-//            BigInteger percent = partNumber.multiply(BigInteger.valueOf(WHOLE_NUMBER_OF_PERCENTS))
-//                    .divide(wholeNumber);
-//            int percentCount = percent.intValue();
-//            return percentCount;
-//        }
     }
 
 
