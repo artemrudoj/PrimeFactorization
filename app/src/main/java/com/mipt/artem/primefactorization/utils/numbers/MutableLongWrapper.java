@@ -1,10 +1,13 @@
 package com.mipt.artem.primefactorization.utils.numbers;
 
+import android.util.Log;
+
 /**
  * Created by artem on 26.07.16.
  */
 public class MutableLongWrapper implements SimpleMathOperation {
 
+    private static final String TAG = "MutableLongWrapper";
     long value;
 
     public long getValue() {
@@ -57,12 +60,44 @@ public class MutableLongWrapper implements SimpleMathOperation {
         }
     }
 
+    @Override
+    public String toString() {
+        String str =  Long.toString(value) + " ";
+        Log.d(TAG, "toString: " + str);
+        return str;
+    }
+
     public MutableLongWrapper(long value) {
         this.value = value;
     }
 
     @Override
-    public SimpleMathOperation valueOf(int number) {
+    public SimpleMathOperation valueOf(long number) {
         return new MutableLongWrapper(number);
+    }
+
+    @Override
+    public SimpleMathOperation sqrt(SimpleMathOperation number) {
+        if(number instanceof MutableLongWrapper) {
+            value = (long) Math.sqrt(((MutableLongWrapper) number).getValue());
+            return this;
+        } else {
+            throw new IllegalArgumentException("number should be MutableLongWrapper");
+        }
+    }
+
+    @Override
+    public SimpleMathOperation add(SimpleMathOperation number) {
+        if(number instanceof MutableLongWrapper) {
+            value = value + ((MutableLongWrapper) number).getValue();
+            return this;
+        } else {
+            throw new IllegalArgumentException("number should be MutableLongWrapper");
+        }
+    }
+
+    @Override
+    public SimpleMathOperation copy() {
+        return new MutableLongWrapper(value);
     }
 }

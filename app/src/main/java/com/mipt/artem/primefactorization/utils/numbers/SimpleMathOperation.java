@@ -5,11 +5,13 @@ import java.math.*;
 /**
  * Created by artem on 26.07.16.
  */
-interface  SimpleMathOperation {
+public interface  SimpleMathOperation {
     SimpleMathOperation mod(SimpleMathOperation number);
     int compareTo(SimpleMathOperation number);
     SimpleMathOperation divide(SimpleMathOperation number);
     SimpleMathOperation multiply(SimpleMathOperation number);
-    SimpleMathOperation valueOf(int number);
-
+    SimpleMathOperation valueOf(long number);
+    SimpleMathOperation sqrt(SimpleMathOperation number);
+    SimpleMathOperation add(SimpleMathOperation number);
+    SimpleMathOperation copy();
 }
