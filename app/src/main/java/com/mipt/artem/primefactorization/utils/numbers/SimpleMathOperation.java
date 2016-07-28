@@ -10,7 +10,7 @@ public interface  SimpleMathOperation {
     int compareTo(SimpleMathOperation number);
     SimpleMathOperation divide(SimpleMathOperation number);
     SimpleMathOperation multiply(SimpleMathOperation number);
-    SimpleMathOperation valueOf(long number);
+    SimpleMathOperation createObjectOf(String number);
     SimpleMathOperation sqrt(SimpleMathOperation number);
     SimpleMathOperation add(SimpleMathOperation number);
     SimpleMathOperation copy();

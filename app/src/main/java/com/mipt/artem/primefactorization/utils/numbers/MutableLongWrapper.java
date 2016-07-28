@@ -72,8 +72,8 @@ public class MutableLongWrapper implements SimpleMathOperation {
     }
 
     @Override
-    public SimpleMathOperation valueOf(long number) {
-        return new MutableLongWrapper(number);
+    public SimpleMathOperation createObjectOf(String number) {
+        return new MutableLongWrapper(Long.parseLong(number));
     }
 
     @Override
