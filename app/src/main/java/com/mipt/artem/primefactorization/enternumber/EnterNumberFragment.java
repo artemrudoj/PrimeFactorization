@@ -50,7 +50,7 @@ public class EnterNumberFragment extends Fragment {
     }
 
     boolean isNumberValid() {
-        return true;
+        return mNumberEditText.getText().toString().matches("[0-9]+");
     }
 
 }
