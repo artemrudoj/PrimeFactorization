@@ -3,7 +3,6 @@ package com.mipt.artem.primefactorization.factorization;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.app.FragmentManager;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
@@ -61,6 +60,18 @@ public class FactorizeNumberFragment extends BaseFragment implements Factoriztai
             if (isNeedToStartService(currentActivity)) {
                     PrimeFactorService.start(currentActivity);
             }
+            setCancelListenerIsNeeded(currentActivity);
+
+        }
+    }
+
+    void setCancelListenerIsNeeded(Activity activity) {
+        if (activity instanceof FactoriztaionContainerActivity) {
+            if (!isFactorIsDone()) {
+                ((FactoriztaionContainerActivity) activity).setOnFactorCancelListener(this);
+            } else {
+                ((FactoriztaionContainerActivity) activity).setOnFactorCancelListener(null);
+            }
         }
     }
 
@@ -73,20 +84,11 @@ public class FactorizeNumberFragment extends BaseFragment implements Factoriztai
         Log.d(TAG, "restoreData: restored " + mResult);
     }
 
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        if (activity instanceof FactoriztaionContainerActivity) {
-            ((FactoriztaionContainerActivity) activity).setOnFactorCancelListener(this);
-        }
-    }
-
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(EXTRA_PROGRESS, mCurrentProgress);
-        if (mResult == null) {
+        if (!isFactorIsDone()) {
             return;
         }
         if (mResult instanceof ArrayList) {
@@ -97,7 +99,7 @@ public class FactorizeNumberFragment extends BaseFragment implements Factoriztai
     }
 
     boolean isNeedToStartService(Context context) {
-        return (mResult == null) && (!PrimeFactorService.isRunning(context));
+        return (!isFactorIsDone()) && (!PrimeFactorService.isRunning(context));
     }
 
     String getNumber() {
@@ -134,15 +136,25 @@ public class FactorizeNumberFragment extends BaseFragment implements Factoriztai
         updateUI();
     }
 
+    void updateUIfactorCompleted() {
+        mPercentTextView.setText(mResult.toString());
+        mProgressBar.setVisibility(View.INVISIBLE);
+        mInfoTextView.setText(R.string.result);
+        mStopButton.setText(R.string.done);
+    }
+
+    void updateUIfactorStillDoing() {
+        mProgressBar.setVisibility(View.VISIBLE);
+        if (mCurrentProgress != -1) {
+            mPercentTextView.setText(Utils.createProgressString(Integer.toString(mCurrentProgress)));
+        }
+    }
+
     void updateUI() {
-        if(mResult != null) {
-            mPercentTextView.setText(mResult.toString());
-            mProgressBar.setVisibility(View.INVISIBLE);
+        if(isFactorIsDone()) {
+            updateUIfactorCompleted();
         } else {
-            mProgressBar.setVisibility(View.VISIBLE);
-            if (mCurrentProgress != -1) {
-                mPercentTextView.setText(Utils.createProgressString(Integer.toString(mCurrentProgress)));
-            }
+            updateUIfactorStillDoing();
         }
     }
 
@@ -152,7 +164,7 @@ public class FactorizeNumberFragment extends BaseFragment implements Factoriztai
     public void onStart() {
         super.onStart();
         Log.d(TAG, "onStart: ");
-        if (mResult == null) {
+        if (!isFactorIsDone()) {
             bindToService();
         }
     }
@@ -191,15 +203,19 @@ public class FactorizeNumberFragment extends BaseFragment implements Factoriztai
     }
 
     void syncWithService() {
-        if (mResult != null) {
+        if (isFactorIsDone()) {
             return;
         }
         if(mBoundLocalService != null) {
             mResult = mBoundLocalService.getResult(mNumber);
-            if(mResult == null) {
+            if(!isFactorIsDone()) {
                 mCurrentProgress = mBoundLocalService.getCurrentProgress();
             } else {
                 unbindFromService();
+                Activity activity = getActivity();
+                if (activity != null) {
+                    setCancelListenerIsNeeded(activity);
+                }
             }
         }
     }
@@ -218,7 +234,7 @@ public class FactorizeNumberFragment extends BaseFragment implements Factoriztai
                     .getService();
             mBoundLocalService.setServiceListener(new ServiceListener(FactorizeNumberFragment.this));
             syncWithService();
-            if (mResult == null) {
+            if (!isFactorIsDone()) {
                 mBoundLocalService.startFactor(mNumber);
             } else {
                 updateUI();
@@ -263,14 +279,18 @@ public class FactorizeNumberFragment extends BaseFragment implements Factoriztai
         public void setResult(final List result) {
             final FactorizeNumberFragment localReferenceActivity = mWeakActivity.get();
             if (localReferenceActivity != null) {
-                Activity activity = localReferenceActivity.getActivity();
+                final Activity activity = localReferenceActivity.getActivity();
                 if(activity != null) {
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             localReferenceActivity.mResult = result;
+                            localReferenceActivity.mResult.add(0,"1");
                             localReferenceActivity.updateUI();
                             localReferenceActivity.unbindFromService();
+                            if (activity instanceof FactoriztaionContainerActivity) {
+                                ((FactoriztaionContainerActivity) activity).setOnFactorCancelListener(null);
+                            }
                         }
                     });
                 }
@@ -294,13 +314,24 @@ public class FactorizeNumberFragment extends BaseFragment implements Factoriztai
     }
 
 
+    boolean isFactorIsDone() {
+        return mResult != null;
+    }
+
     private void initView(View view) {
         mPercentTextView = (TextView)view.findViewById(R.id.percent_tv);
         mStopButton = (Button) view.findViewById(R.id.stop_btn);
         mStopButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onCancel();
+                if (!isFactorIsDone()) {
+                    onCancel();
+                } else {
+                    Activity activity = getActivity();
+                    if (activity != null) {
+                        activity.finish();
+                    }
+                }
             }
         });
         mProgressBar = (ProgressBar)view.findViewById(R.id.progressbar);
