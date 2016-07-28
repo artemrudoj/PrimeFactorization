@@ -7,6 +7,5 @@ import java.util.List;
  */
 interface  ProgressChangeListener {
     void setProgress(int progress);
-
     boolean isCanceled();
 }

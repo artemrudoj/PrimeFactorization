@@ -51,7 +51,7 @@ public class EnterNumberFragment extends BaseFragment {
     }
 
     boolean isNumberValid() {
-        return mNumberEditText.getText().toString().matches("[0-9]+");
+        return mNumberEditText.getText().toString().matches("^[1-9][0-9]*");
     }
 
 }
