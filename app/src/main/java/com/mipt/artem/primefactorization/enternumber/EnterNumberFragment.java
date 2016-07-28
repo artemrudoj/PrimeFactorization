@@ -10,13 +10,14 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.mipt.artem.primefactorization.R;
+import com.mipt.artem.primefactorization.base.BaseFragment;
 import com.mipt.artem.primefactorization.factorization.FactoriztaionContainerActivity;
 
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class EnterNumberFragment extends Fragment {
+public class EnterNumberFragment extends BaseFragment {
 
     private EditText mNumberEditText;
     private Button mStartFactorizationButton;

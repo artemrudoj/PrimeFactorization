@@ -21,6 +21,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.mipt.artem.primefactorization.R;
+import com.mipt.artem.primefactorization.base.BaseFragment;
+import com.mipt.artem.primefactorization.utils.Utils;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -30,7 +32,7 @@ import java.util.List;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class FactorizeNumberFragment extends Fragment {
+public class FactorizeNumberFragment extends BaseFragment {
     private final int CANCEL_ACTION = 123;
     private LocalServiceConnection mLocalServiceConnection =
             new LocalServiceConnection();
@@ -42,6 +44,7 @@ public class FactorizeNumberFragment extends Fragment {
     private List mResult;
     private Button mStopButton;
     private ProgressBar mProgressBar;
+    private TextView mInfoTextView;
     private final String TAG = "FactorizeNumberFragment";
     private final String EXTRA_RESULT = "FactorizeNumberFragment.EXTRA_RESULT";
     private final String EXTRA_PROGRESS = "FactorizeNumberFragment.EXTRA_PROGRESS";
@@ -129,10 +132,12 @@ public class FactorizeNumberFragment extends Fragment {
         } else {
             mProgressBar.setVisibility(View.VISIBLE);
             if (mCurrentProgress != -1) {
-                mPercentTextView.setText(Integer.toString(mCurrentProgress));
+                mPercentTextView.setText(Utils.createProgressString(Integer.toString(mCurrentProgress)));
             }
         }
     }
+
+
 
     @Override
     public void onStart() {
@@ -286,6 +291,7 @@ public class FactorizeNumberFragment extends Fragment {
             }
         });
         mProgressBar = (ProgressBar)view.findViewById(R.id.progressbar);
+        mInfoTextView = (TextView) view.findViewById(R.id.info_tv);
     }
 
 }
