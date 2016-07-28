@@ -1,6 +1,6 @@
 package com.mipt.artem.primefactorization.utils.numbers;
 
-import java.nio.charset.Charset;
+import java.math.BigInteger;
 
 /**
  * Created by artem on 26.07.16.
@@ -8,9 +8,14 @@ import java.nio.charset.Charset;
 public class NumberFactory {
     private SimpleMathOperation mHelperNumber;
     static public NumberFactory build(String number) {
-        long value = Long.parseLong(number);
+        BigInteger testNumber = new BigInteger(number);
         NumberFactory numberFactory = new NumberFactory();
-        numberFactory.setHelperNumber(new MutableLongWrapper(value));
+        if (testNumber.compareTo(BigInteger.valueOf(Long.MAX_VALUE)) > 0) {
+            numberFactory.setHelperNumber(new BigIntegerWarapper(testNumber));
+        } else {
+            long value = Long.parseLong(number);
+            numberFactory.setHelperNumber(new MutableLongWrapper(value));
+        }
         return numberFactory;
     }
 
@@ -19,18 +24,16 @@ public class NumberFactory {
     }
 
     public SimpleMathOperation valueOf(long number) {
-        return mHelperNumber.valueOf(number);
+        return mHelperNumber.createObjectOf(Long.toString(number));
     }
 
     public SimpleMathOperation valueOf(String number) {
-
-        return mHelperNumber.valueOf(Long.parseLong(number));
+        return mHelperNumber.createObjectOf(number);
     }
 
     public SimpleMathOperation mod(SimpleMathOperation n, SimpleMathOperation two) {
         mHelperNumber = n.copy();
-        mHelperNumber.mod(two);
-        return mHelperNumber;
+        return mHelperNumber.mod(two);
     }
 
     public SimpleMathOperation sqrt(SimpleMathOperation n) {
