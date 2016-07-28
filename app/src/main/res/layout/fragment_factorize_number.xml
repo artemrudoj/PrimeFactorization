@@ -4,6 +4,13 @@
     android:layout_height="match_parent"
     android:padding="@dimen/activity_horizontal_margin"
     tools:context=".factorization.FactorizeNumberFragment">
+    <TextView
+        android:id="@+id/info_tv"
+        android:text="@string/please_wait"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/progressbar"
+        android:layout_centerHorizontal="true"/>
     <ProgressBar
         android:id="@+id/progressbar"
         android:layout_centerInParent="true"

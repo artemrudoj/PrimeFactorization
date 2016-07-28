@@ -39,6 +39,10 @@ public class Utils {
         return y;
     } // end bigIntSqRootFloor
 
+    static public String createProgressString(String number) {
+        return number + " " + "%";
+    }
+
     public static BigInteger bigIntSqRootCeil(BigInteger x)
             throws IllegalArgumentException {
         if (x.compareTo(BigInteger.ZERO) < 0) {
