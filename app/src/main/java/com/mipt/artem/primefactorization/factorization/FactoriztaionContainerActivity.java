@@ -6,9 +6,19 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 import com.mipt.artem.primefactorization.R;
+import com.mipt.artem.primefactorization.base.BaseActivity;
 
-public class FactoriztaionContainerActivity extends AppCompatActivity {
+public class FactoriztaionContainerActivity extends BaseActivity {
     public static final String EXTRA_NUMBER = "FactoriztaionContainerActivity.number";
+    public interface OnFactorCancel{
+        void onCancel();
+    }
+
+    OnFactorCancel mOnFactorCancelListener;
+
+    public void setOnFactorCancelListener(OnFactorCancel onFactorCancelListener) {
+        mOnFactorCancelListener = onFactorCancelListener;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,5 +42,15 @@ public class FactoriztaionContainerActivity extends AppCompatActivity {
         Intent intent = new Intent(context, FactoriztaionContainerActivity.class);
         intent.putExtra(FactoriztaionContainerActivity.EXTRA_NUMBER, number);
         context.startActivity(intent);
+    }
+
+
+    @Override
+    public void onBackPressed() {
+        if (mOnFactorCancelListener != null) {
+            mOnFactorCancelListener.onCancel();
+        } else {
+            super.onBackPressed();
+        }
     }
 }

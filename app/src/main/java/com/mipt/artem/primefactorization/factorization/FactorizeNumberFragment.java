@@ -32,8 +32,8 @@ import java.util.List;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class FactorizeNumberFragment extends BaseFragment {
-    private final int CANCEL_ACTION = 123;
+public class FactorizeNumberFragment extends BaseFragment implements FactoriztaionContainerActivity.OnFactorCancel {
+    public static  final int CANCEL_ACTION = 123;
     private LocalServiceConnection mLocalServiceConnection =
             new LocalServiceConnection();
     private PrimeFactorService mBoundLocalService;
@@ -71,6 +71,15 @@ public class FactorizeNumberFragment extends BaseFragment {
         mResult = bundle.getStringArrayList(EXTRA_RESULT);
         mCurrentProgress = bundle.getInt(EXTRA_PROGRESS, -1);
         Log.d(TAG, "restoreData: restored " + mResult);
+    }
+
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        if (activity instanceof FactoriztaionContainerActivity) {
+            ((FactoriztaionContainerActivity) activity).setOnFactorCancelListener(this);
+        }
     }
 
     @Override
@@ -195,6 +204,12 @@ public class FactorizeNumberFragment extends BaseFragment {
         }
     }
 
+    @Override
+    public void onCancel() {
+        ApproveExitDialogFragment.showDialog(getActivity().getFragmentManager(),
+                FactorizeNumberFragment.this);
+    }
+
     private class LocalServiceConnection implements ServiceConnection {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
@@ -278,16 +293,14 @@ public class FactorizeNumberFragment extends BaseFragment {
         }
     }
 
+
     private void initView(View view) {
         mPercentTextView = (TextView)view.findViewById(R.id.percent_tv);
         mStopButton = (Button) view.findViewById(R.id.stop_btn);
         mStopButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                FragmentManager manager = getActivity().getFragmentManager();
-                ApproveExitDialogFragment dialog = new ApproveExitDialogFragment();
-                dialog.setTargetFragment(FactorizeNumberFragment.this, CANCEL_ACTION);
-                dialog.show(manager, null);
+                onCancel();
             }
         });
         mProgressBar = (ProgressBar)view.findViewById(R.id.progressbar);

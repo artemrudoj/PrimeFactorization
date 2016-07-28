@@ -4,6 +4,9 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -24,6 +27,12 @@ public class ApproveExitDialogFragment extends DialogFragment {
                 })
                 .setNegativeButton("Отмена", null);
         return builder.create();
+    }
+
+    static public void showDialog(FragmentManager fragmentManager, Fragment fragment) {
+        ApproveExitDialogFragment dialog = new ApproveExitDialogFragment();
+        dialog.setTargetFragment(fragment, FactorizeNumberFragment.CANCEL_ACTION);
+        dialog.show(fragmentManager, null);
     }
 
     private void sendResult(int resultCode) {
