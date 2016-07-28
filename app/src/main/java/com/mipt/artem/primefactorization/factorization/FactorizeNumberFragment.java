@@ -17,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.mipt.artem.primefactorization.R;
@@ -40,6 +41,7 @@ public class FactorizeNumberFragment extends Fragment {
     private TextView mPercentTextView;
     private List mResult;
     private Button mStopButton;
+    private ProgressBar mProgressBar;
     private final String TAG = "FactorizeNumberFragment";
     private final String EXTRA_RESULT = "FactorizeNumberFragment.EXTRA_RESULT";
     private final String EXTRA_PROGRESS = "FactorizeNumberFragment.EXTRA_PROGRESS";
@@ -123,7 +125,9 @@ public class FactorizeNumberFragment extends Fragment {
     void updateUI() {
         if(mResult != null) {
             mPercentTextView.setText(mResult.toString());
+            mProgressBar.setVisibility(View.INVISIBLE);
         } else {
+            mProgressBar.setVisibility(View.VISIBLE);
             if (mCurrentProgress != -1) {
                 mPercentTextView.setText(Integer.toString(mCurrentProgress));
             }
@@ -245,7 +249,7 @@ public class FactorizeNumberFragment extends Fragment {
                         @Override
                         public void run() {
                             localReferenceActivity.mResult = result;
-                            localReferenceActivity.mPercentTextView.setText(result.toString());
+                            localReferenceActivity.updateUI();
                             localReferenceActivity.unbindFromService();
                         }
                     });
@@ -281,6 +285,7 @@ public class FactorizeNumberFragment extends Fragment {
                 dialog.show(manager, null);
             }
         });
+        mProgressBar = (ProgressBar)view.findViewById(R.id.progressbar);
     }
 
 }

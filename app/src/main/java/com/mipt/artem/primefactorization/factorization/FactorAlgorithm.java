@@ -102,9 +102,12 @@ public class FactorAlgorithm {
 
         public void updateProgress(SimpleMathOperation currentValue) {
 //            Log.d(TAG, "updateProgress: " + currentValue);
-            if(currentValue.compareTo(mNextStepProgressUpdateValue) > 0) {
+            if (currentValue.compareTo(mNextStepProgressUpdateValue) > 0) {
                 mCurrentPercentUpdateValue += 1;
-                if  (mProgressChangerListener != null) {
+                if (mCurrentPercentUpdateValue >= WHOLE_NUMBER_OF_PERCENTS - 1) {
+                    mCurrentPercentUpdateValue =  WHOLE_NUMBER_OF_PERCENTS - 1;
+                }
+                if (mProgressChangerListener != null) {
                     Log.d(TAG, "updateProgress: " + currentValue);
                     Log.d(TAG, "updateProgress: " + Integer.toString(mCurrentPercentUpdateValue));
                     mProgressChangerListener.setProgress(mCurrentPercentUpdateValue);
