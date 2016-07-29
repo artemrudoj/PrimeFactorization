@@ -15,7 +15,7 @@ import java.util.List;
 public class FactorAlgorithm {
     private static final String TAG = "FactorAlgorithm";
 
-    public  static List start(String number, ProgressChangeListener progressChangerListener) {
+    public  static List start(String number, ProcessController progressChangerListener) {
 
 
         NumberFactory numberFactory = NumberFactory.build(number);
@@ -67,13 +67,13 @@ public class FactorAlgorithm {
 
     private static class PercentCalculator {
         private static final int WHOLE_NUMBER_OF_PERCENTS = 100;
-        private ProgressChangeListener mProgressChangerListener;
+        private ProcessController mProgressChangerListener;
         private SimpleMathOperation mNextStepProgressUpdateValue;
         private SimpleMathOperation mStep;
         private int mCurrentPercentUpdateValue;
         private NumberFactory mNumberFactory;
 
-        public PercentCalculator(SimpleMathOperation n, ProgressChangeListener progressChangerListener, NumberFactory numberFactory) {
+        public PercentCalculator(SimpleMathOperation n, ProcessController progressChangerListener, NumberFactory numberFactory) {
             mNumberFactory = numberFactory;
             mProgressChangerListener = progressChangerListener;
             mCurrentPercentUpdateValue = 0;

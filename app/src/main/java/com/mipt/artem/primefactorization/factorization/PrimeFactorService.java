@@ -15,7 +15,6 @@ import android.util.Log;
 
 import com.mipt.artem.primefactorization.utils.Utils;
 
-import java.math.BigInteger;
 import java.util.List;
 
 /**
@@ -102,7 +101,7 @@ public class PrimeFactorService extends Service {
 
 
 
-    private class PrimeFactorHandlerThread extends HandlerThread implements ProgressChangeListener{
+    private class PrimeFactorHandlerThread extends HandlerThread implements ProcessController {
 
         private final int FACTOR = 1;
 
