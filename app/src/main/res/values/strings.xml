@@ -7,4 +7,5 @@
     <string name="please_wait">Пожалуйста, подождите</string>
     <string name="result">Результат:</string>
     <string name="done">Завершить</string>
+    <string name="input_error">Некорректное число</string>
 </resources>

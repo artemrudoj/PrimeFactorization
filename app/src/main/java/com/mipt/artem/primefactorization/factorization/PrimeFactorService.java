@@ -204,7 +204,6 @@ public class PrimeFactorService extends Service {
         }
 
         public int getCurrentProgress() {
-            //// TODO: 25.07.16 sync
             if(isTaskRun) {
                 return mCurrentProgress;
             } else {
