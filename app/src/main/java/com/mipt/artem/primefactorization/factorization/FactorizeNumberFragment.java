@@ -55,6 +55,7 @@ public class FactorizeNumberFragment extends BaseFragment implements Factoriztai
         //set default value
         mCurrentProgress = -1;
         restoreData(savedInstanceState);
+        handleIfOne();
         Activity currentActivity = getActivity();
         if (currentActivity != null) {
             if (isNeedToStartService(currentActivity)) {
@@ -62,6 +63,15 @@ public class FactorizeNumberFragment extends BaseFragment implements Factoriztai
             }
             setCancelListenerIsNeeded(currentActivity);
 
+        }
+    }
+
+    private void handleIfOne() {
+        if (mResult == null) {
+            if (mNumber.equals("1")) {
+                mResult = new ArrayList();
+                mResult.add("1");
+            }
         }
     }
 
@@ -284,8 +294,8 @@ public class FactorizeNumberFragment extends BaseFragment implements Factoriztai
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            result.add(0,"1");
                             localReferenceActivity.mResult = result;
-                            localReferenceActivity.mResult.add(0,"1");
                             localReferenceActivity.updateUI();
                             localReferenceActivity.unbindFromService();
                             if (activity instanceof FactoriztaionContainerActivity) {
