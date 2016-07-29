@@ -8,4 +8,6 @@
     <string name="result">Результат:</string>
     <string name="done">Завершить</string>
     <string name="input_error">Некорректное число</string>
+    <string name="attention">Внимание</string>
+    <string name="work_has_done">Работа завершена</string>
 </resources>

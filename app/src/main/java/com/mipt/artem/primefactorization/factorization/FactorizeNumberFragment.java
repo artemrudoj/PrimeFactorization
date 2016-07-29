@@ -270,15 +270,15 @@ public class FactorizeNumberFragment extends BaseFragment implements Factoriztai
         }
         @Override
         public void setProgress(int progress) {
-            final FactorizeNumberFragment localReferenceActivity = mWeakActivity.get();
-            if (localReferenceActivity != null) {
-                Activity activity = localReferenceActivity.getActivity();
+            final FactorizeNumberFragment fragment = mWeakActivity.get();
+            if (fragment != null) {
+                Activity activity = fragment.getActivity();
                 if(activity != null) {
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            localReferenceActivity.syncWithService();
-                            localReferenceActivity.updateUI();
+                            fragment.syncWithService();
+                            fragment.updateUI();
                         }
                     });
                 }
@@ -287,17 +287,17 @@ public class FactorizeNumberFragment extends BaseFragment implements Factoriztai
 
         @Override
         public void setResult(final List result) {
-            final FactorizeNumberFragment localReferenceActivity = mWeakActivity.get();
-            if (localReferenceActivity != null) {
-                final Activity activity = localReferenceActivity.getActivity();
+            final FactorizeNumberFragment fragment = mWeakActivity.get();
+            if (fragment != null) {
+                final Activity activity = fragment.getActivity();
                 if(activity != null) {
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             result.add(0,"1");
-                            localReferenceActivity.mResult = result;
-                            localReferenceActivity.updateUI();
-                            localReferenceActivity.unbindFromService();
+                            fragment.mResult = result;
+                            fragment.updateUI();
+                            fragment.unbindFromService();
                             if (activity instanceof FactoriztaionContainerActivity) {
                                 ((FactoriztaionContainerActivity) activity).setOnFactorCancelListener(null);
                             }

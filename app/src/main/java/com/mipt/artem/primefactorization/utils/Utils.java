@@ -1,9 +1,20 @@
 package com.mipt.artem.primefactorization.utils;
 
 import android.app.ActivityManager;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
+import android.support.v4.app.TaskStackBuilder;
+import android.support.v4.app.NotificationCompat;
+
+import com.mipt.artem.primefactorization.R;
+import com.mipt.artem.primefactorization.factorization.FactorizeNumberFragment;
+import com.mipt.artem.primefactorization.factorization.FactoriztaionContainerActivity;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by artem on 23.07.16.
