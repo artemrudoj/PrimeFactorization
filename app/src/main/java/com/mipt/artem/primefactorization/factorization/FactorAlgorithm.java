@@ -82,7 +82,7 @@ public class FactorAlgorithm {
         }
 
         // sqrt(x)/100 * ( 100 - mCurrentPercentUpdateValue)/100
-        //percent is calculated as
+        //percent is calculated as part of the max of sqrt of max divider of current factoring number with additional normalization
         private SimpleMathOperation calculateNextStep(SimpleMathOperation n) {
             SimpleMathOperation temp = n.copy();
             SimpleMathOperation nextStep = temp

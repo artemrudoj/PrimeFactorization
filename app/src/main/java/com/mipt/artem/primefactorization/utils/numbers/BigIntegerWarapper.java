@@ -3,7 +3,6 @@ package com.mipt.artem.primefactorization.utils.numbers;
 import com.mipt.artem.primefactorization.utils.Utils;
 
 import java.math.BigInteger;
-import java.util.Random;
 
 /**
  * Created by artem on 28.07.16.
