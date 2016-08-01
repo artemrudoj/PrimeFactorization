@@ -11,6 +11,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 
+import com.mipt.artem.primefactorization.R;
+
 
 /**
  * Created by artem on 24.07.16.
@@ -19,13 +21,13 @@ public class ApproveExitDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setMessage("Вы действительно хотите выйти?")
-                .setPositiveButton("Выйти", new DialogInterface.OnClickListener() {
+        builder.setMessage(R.string.text_in_dialog)
+                .setPositiveButton(R.string.exit, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         sendResult(Activity.RESULT_OK);
                     }
                 })
-                .setNegativeButton("Отмена", null);
+                .setNegativeButton(R.string.cancel, null);
         return builder.create();
     }
 

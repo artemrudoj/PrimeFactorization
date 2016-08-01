@@ -10,4 +10,7 @@
     <string name="input_error">Некорректное число</string>
     <string name="attention">Внимание</string>
     <string name="work_has_done">Работа завершена</string>
+    <string name="text_in_dialog">Вы действительно хотите выйти?</string>
+    <string name="exit">Выйти</string>
+    <string name="cancel">Отмена</string>
 </resources>

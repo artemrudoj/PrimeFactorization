@@ -82,6 +82,7 @@ public class FactorAlgorithm {
         }
 
         // sqrt(x)/100 * ( 100 - mCurrentPercentUpdateValue)/100
+        //percent is calculated as
         private SimpleMathOperation calculateNextStep(SimpleMathOperation n) {
             SimpleMathOperation temp = n.copy();
             SimpleMathOperation nextStep = temp
